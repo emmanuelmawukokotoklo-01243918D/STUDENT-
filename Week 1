@@ -1,0 +1,56 @@
+#include <iostream>
+#include <vector>
+#include "Student.h"
+
+using namespace std;
+
+int main() {
+    vector<Student> students;
+    int choice;
+
+    do {
+        cout << "\n==== Student Attendance System ====\n";
+        cout << "1. Add Student\n";
+        cout << "2. View Students\n";
+        cout << "3. Exit\n";
+        cout << "Enter choice: ";
+        cin >> choice;
+
+        if (choice == 1) {
+            int id;
+            string name, program;
+
+            cout << "Enter Student ID: ";
+            cin >> id;
+
+            cin.ignore();
+            cout << "Enter Student Name: ";
+            getline(cin, name);
+
+            cout << "Enter Program: ";
+            getline(cin, program);
+
+            Student s(id, name, program);
+            students.push_back(s);
+
+            cout << "Student added successfully!\n";
+        }
+        else if (choice == 2) {
+            if (students.empty()) {
+                cout << "No students available.\n";
+            } else {
+                cout << "\n--- Student List ---\n";
+                for (const Student &s : students) {
+                    s.display();
+                }
+            }
+        }
+        else if (choice != 3) {
+            cout << "Invalid choice. Try again.\n";
+        }
+
+    } while (choice != 3);
+
+    cout << "Exiting program...\n";
+    return 0;
+}
