@@ -1,0 +1,252 @@
+#include <iostream>
+#include <vector>
+#include <fstream>
+#include <algorithm>
+#include <limits>
+
+using namespace std;
+
+const string DATA_FILE = "attendance_data.txt";
+
+/* ==============================
+   AttendanceSession Class
+================================= */
+class AttendanceSession {
+private:
+    string courseName;
+    string date;
+    vector<string> students;
+
+public:
+    AttendanceSession() {}
+    AttendanceSession(string course, string sessionDate)
+        : courseName(course), date(sessionDate) {}
+
+    string getCourseName() const { return courseName; }
+    string getDate() const { return date; }
+    vector<string> getStudents() const { return students; }
+
+    void addStudent(const string& name) {
+        if (find(students.begin(), students.end(), name) == students.end()) {
+            students.push_back(name);
+            cout << "Student marked present.\n";
+        } else {
+            cout << "Student already recorded.\n";
+        }
+    }
+
+    int getAttendanceCount() const {
+        return students.size();
+    }
+
+    void display() const {
+        cout << "\nCourse: " << courseName
+             << "\nDate: " << date
+             << "\nTotal Present: " << students.size() << endl;
+
+        for (size_t i = 0; i < students.size(); i++) {
+            cout << i + 1 << ". " << students[i] << endl;
+        }
+    }
+
+    /* ===== File Serialization ===== */
+    void save(ofstream& out) const {
+        out << courseName << endl;
+        out << date << endl;
+        out << students.size() << endl;
+        for (const string& student : students)
+            out << student << endl;
+    }
+
+    void load(ifstream& in) {
+        getline(in, courseName);
+        getline(in, date);
+
+        int count;
+        in >> count;
+        in.ignore();
+
+        students.clear();
+        for (int i = 0; i < count; i++) {
+            string student;
+            getline(in, student);
+            students.push_back(student);
+        }
+    }
+};
+
+/* ==============================
+   Utility Functions
+================================= */
+
+int getValidatedInt() {
+    int value;
+    while (!(cin >> value)) {
+        cout << "Invalid input. Enter a number: ";
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    }
+    return value;
+}
+
+string getValidatedLine(const string& prompt) {
+    string input;
+    cout << prompt;
+    cin.ignore();
+    getline(cin, input);
+
+    while (input.empty()) {
+        cout << "Input cannot be empty. Try again: ";
+        getline(cin, input);
+    }
+    return input;
+}
+
+/* ==============================
+   File Handling
+================================= */
+
+void saveToFile(const vector<AttendanceSession>& sessions) {
+    ofstream out(DATA_FILE);
+
+    out << sessions.size() << endl;
+    for (const auto& session : sessions)
+        session.save(out);
+
+    cout << "Data saved successfully.\n";
+}
+
+void loadFromFile(vector<AttendanceSession>& sessions) {
+    ifstream in(DATA_FILE);
+
+    if (!in) return;
+
+    int count;
+    in >> count;
+    in.ignore();
+
+    sessions.clear();
+    for (int i = 0; i < count; i++) {
+        AttendanceSession session;
+        session.load(in);
+        sessions.push_back(session);
+    }
+}
+
+/* ==============================
+   Reports
+================================= */
+
+void generateReport(const vector<AttendanceSession>& sessions) {
+    cout << "\n======= ATTENDANCE SUMMARY =======\n";
+
+    if (sessions.empty()) {
+        cout << "No sessions available.\n";
+        return;
+    }
+
+    int totalRecords = 0;
+
+    for (size_t i = 0; i < sessions.size(); i++) {
+        cout << "\nSession " << i + 1
+             << " | " << sessions[i].getCourseName()
+             << " | " << sessions[i].getDate()
+             << " | Present: "
+             << sessions[i].getAttendanceCount() << endl;
+
+        totalRecords += sessions[i].getAttendanceCount();
+    }
+
+    cout << "\nTotal Sessions: " << sessions.size()
+         << "\nTotal Attendance Records: " << totalRecords << endl;
+}
+
+/* ==============================
+   Main Program
+================================= */
+
+int main() {
+    vector<AttendanceSession> sessions;
+    loadFromFile(sessions);
+
+    int choice;
+
+    do {
+        cout << "\n===== Attendance Management System =====\n";
+        cout << "1. Create Session\n";
+        cout << "2. Mark Attendance\n";
+        cout << "3. View Sessions\n";
+        cout << "4. Generate Report\n";
+        cout << "5. Save & Exit\n";
+        cout << "Choose: ";
+
+        choice = getValidatedInt();
+
+        switch (choice) {
+
+        case 1: {
+            cin.ignore();
+            string course, date;
+
+            cout << "Course Name: ";
+            getline(cin, course);
+
+            cout << "Date (YYYY-MM-DD): ";
+            getline(cin, date);
+
+            sessions.emplace_back(course, date);
+            cout << "Session created.\n";
+            break;
+        }
+
+        case 2: {
+            if (sessions.empty()) {
+                cout << "No sessions available.\n";
+                break;
+            }
+
+            for (size_t i = 0; i < sessions.size(); i++) {
+                cout << i << " - "
+                     << sessions[i].getCourseName()
+                     << " (" << sessions[i].getDate() << ")\n";
+            }
+
+            cout << "Select session index: ";
+            int index = getValidatedInt();
+
+            if (index < 0 || index >= sessions.size()) {
+                cout << "Invalid session.\n";
+                break;
+            }
+
+            cin.ignore();
+            string name;
+            cout << "Student Name: ";
+            getline(cin, name);
+
+            sessions[index].addStudent(name);
+            break;
+        }
+
+        case 3:
+            for (const auto& session : sessions)
+                session.display();
+            break;
+
+        case 4:
+            generateReport(sessions);
+            break;
+
+        case 5:
+            saveToFile(sessions);
+            cout << "Exiting program.\n";
+            break;
+
+        default:
+            cout << "Invalid option.\n";
+        }
+
+    } while (choice != 5);
+
+    return 0;
+}
