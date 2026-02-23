@@ -1,0 +1,122 @@
+#include <iostream>
+#include <vector>
+#include <limits>
+
+using namespace std;
+
+
+    }
+
+    void markAttendance(string studentName) {
+        students.push_back(studentName);
+    }
+
+    void displaySession() const {
+        cout << "\nCourse: " << courseName << endl;
+        cout << "Date: " << date << endl;
+
+        if (students.empty()) {
+            cout << "No students marked present.\n";
+        } else {
+            cout << "Students Present:\n";
+            for (size_t i = 0; i < students.size(); i++) {
+                cout << i + 1 << ". " << students[i] << endl;
+            }
+        }
+    }
+};
+
+int main() {
+    vector<AttendanceSession> sessions;
+    int choice;
+
+    do {
+        cout << "\n========== Attendance Management System ==========\n";
+        cout << "1. Create Lecture Session\n";
+        cout << "2. Mark Attendance\n";
+        cout << "3. View All Sessions\n";
+        cout << "4. Exit\n";
+        cout << "Enter choice: ";
+        cin >> choice;
+
+        // Clear input buffer if invalid input
+        if (cin.fail()) {
+            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            cout << "Invalid input. Please enter a number.\n";
+            continue;
+        }
+
+        switch (choice) {
+
+        case 1: {
+            string course, date;
+
+            cout << "Enter Course Name: ";
+            cin.ignore();
+            getline(cin, course);
+
+            cout << "Enter Date (e.g., 2026-02-21): ";
+            getline(cin, date);
+
+            AttendanceSession newSession(course, date);
+            sessions.push_back(newSession);
+
+            cout << "Lecture session created successfully!\n";
+            break;
+        }
+
+        case 2: {
+            if (sessions.empty()) {
+                cout << "No sessions available. Create one first.\n";
+                break;
+            }
+
+            int index;
+            cout << "Available Sessions:\n";
+            for (size_t i = 0; i < sessions.size(); i++) {
+                cout << i << ". Session " << i + 1 << endl;
+            }
+
+            cout << "Enter session number: ";
+            cin >> index;
+
+            if (index < 0 || index >= sessions.size()) {
+                cout << "Invalid session number.\n";
+                break;
+            }
+
+            string studentName;
+            cout << "Enter Student Name: ";
+            cin.ignore();
+            getline(cin, studentName);
+
+            sessions[index].markAttendance(studentName);
+            cout << "Attendance marked successfully!\n";
+            break;
+        }
+
+        case 3: {
+            if (sessions.empty()) {
+                cout << "No sessions created yet.\n";
+            } else {
+                for (size_t i = 0; i < sessions.size(); i++) {
+                    cout << "\n========== Session " << i + 1 << " ==========";
+                    sessions[i].displaySession();
+                }
+            }
+            break;
+        }
+
+        case 4:
+            cout << "Exiting program. Goodbye!\n";
+            break;
+
+        default:
+            cout << "Invalid choice. Try again.\n";
+        }
+
+    } while (choice != 4);
+
+    return 0;
+}
